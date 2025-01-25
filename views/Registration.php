@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Side-by-Side Registration</title>
+    <title>Registration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -77,7 +77,7 @@
                             </form>
                         </div>
                         <div class="col-md-6 d-flex align-items-center justify-content-center" style="background-color: #f7f7f7;">
-                            <img src="https://img.freepik.com/free-vector/gift-shopping-checklist-girl-cartoon-character-buying-presents-online-e-commerce-gift-card-promotion-birthday-anniversary-bonus-vector-isolated-concept-metaphor-illustration_335657-1282.jpg?t=st=1737781879~exp=1737785479~hmac=eedaabb63da0b47446ef8e3c9c714df6d0e5b63556f4e269c1626b3e58f3479d&w=740"
+                            <img src="../public/img/logo.jpg"
                                  alt="Registration" class="img-fluid" style="max-width: 100%; height: 100%;">
                         </div>
                     </div>
