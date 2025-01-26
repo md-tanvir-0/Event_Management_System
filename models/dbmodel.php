@@ -76,8 +76,26 @@ function LoginData($email, $password)
         }
     } catch (Exception $e) {
         error_log("Error during login: " . $e->getMessage());
-    }
-
-    //return false;
+        return false;
 }
+
+}
+function getFullName($userId){
+    try {
+        $conn = getConnection();
+        $stmt = $conn->prepare("SELECT full_name FROM user_reg WHERE user_id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $stmt->store_result();
+        $stmt->bind_result($fullName);
+        $stmt->fetch();
+        $stmt->close();
+        $conn->close();
+        return $fullName;
+    } catch (Exception $e) {
+        error_log("Error during fetching user name: " . $e->getMessage());
+        return false;
+    }
+}
+
 ?>

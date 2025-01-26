@@ -1,36 +1,32 @@
 <?php
 require_once('../models/dbmodel.php');
-require_once('../views/Login.php');
+//require_once('../views/Login.php');
+
 try{
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
-
+        session_start();
         $email = htmlspecialchars($_POST['email']);
         $password = htmlspecialchars($_POST['password']);
     
         $result = LoginData($email, $password);
     
-        if ($result === 'Invalid email') {
-            echo "<script>alert('Invalid email');</script>";
-            //header("Location: ../views/Login.php");
+        if ($result === 'Invalid Email') {
+            echo "<script>alert('Invalid Email');</script>";
             exit();
-        }
-        elseif ($result === 'Invalid password') {
-            echo "<script>alert('Invalid password');</script>";
-            //header("Location: ../views/Login.php");
+        } elseif ($result === 'Invalid Password') {
+            echo "<script>alert('Invalid Password');</script>";
             exit();
-        }
-        elseif ($result) {
-            echo "<script>alert('Login Successfully');</script>";
-            //header("Location: ../views/Home.php");
+        } elseif (is_numeric($result)) {
+            $_SESSION['userid'] = $result;
+            header("Location: ../views/Dashboard.php");
             exit();
-        }
-        else {
+        } else {
             echo "<script>alert('Login failed. Please try again later');</script>";
-            //header("Location: ../views/Login.php");
             exit();
         }
-    }
+    } 
 }
 catch(Exception $e){
     echo $e->getMessage();
 }
+?>
