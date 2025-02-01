@@ -1,0 +1,175 @@
+<?php
+require_once('../controllers/eventController.php');
+require_once('./Navbar.php');
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Events</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <h1>My Events</h1>
+    <div class="container mt-4">
+        <div class="row" id="eventList">
+            <?php
+            $events = getAllByUser($_SESSION['userid']);
+            foreach ($events as $event): ?>
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title"><?= htmlspecialchars($event['event_name']) ?></h5>
+                            <p class="card-text"><?= htmlspecialchars($event['description']) ?></p>
+                            <p class="card-text"><small class="text-muted">Date: <?= htmlspecialchars($event['event_date']) ?></small></p>
+                            <div class="btn-group">
+                                <button data-bs-toggle="modal" data-bs-target="#editEventModal" class="btn btn-primary btn-sm" onclick="editEvent(<?= $event['event_id'] ?>)">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteEvent(<?= $event['event_id'] ?>)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEventModalLabel">Edit Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                    <form method="post" action="../controllers/eventController.php" id="editEventForm">
+                        <input type="hidden" name="action" value="update_event">
+                        <input type="hidden" name="event_id" id="event_id">
+                        <div class="mb-3">
+                            <label class="form-label">Event Name</label>
+                            <input type="text" class="form-control" name="event_name" id="event_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" id="description" required></textarea>
+                        </div>
+                        <button type="submit" name="updateEvent" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Wait for document to be ready before running any jQuery code
+    $(document).ready(function() {
+        let currentEventData = null;
+
+        // Function to handle edit event
+        window.editEvent = function(eventId) {
+            $.ajax({
+                url: '../controllers/eventController.php',
+                method: 'GET',
+                data: {
+                    action: 'get_event',
+                    event_id: eventId
+                },
+                success: function(response) {
+                    try {
+                        console.log('Response:', response);
+                        currentEventData = JSON.parse(response);
+                        
+                        if (currentEventData.status === 'success') {
+                            populateModalFields(currentEventData);
+                            $('#editEventModal').modal('show');
+                        } else {
+                            alert('Error: ' + currentEventData.message);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing event data:', error);
+                        alert('Error loading event data. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    alert('Error loading event data. Please try again.');
+                }
+            });
+        };
+
+        function populateModalFields(eventData) {
+            if (!eventData) return;
+            
+            $('#event_id').val(eventData.event_id);
+            $('#event_name').val(eventData.event_name);
+            $('#description').val(eventData.description);
+        }
+
+        // Form submission handler
+        $('#editEventForm').submit(function(e) {
+            e.preventDefault();
+            
+            const submitButton = $(this).find('button[type="submit"]');
+            const originalText = submitButton.text();
+            submitButton.prop('disabled', true).text('Updating...');
+            
+            $.ajax({
+                url: '../controllers/eventController.php',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    try {
+                        console.log('Update Response:', response);
+                        const result = JSON.parse(response);
+                        if (result.status === 'success') {
+                            $('#editEventModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + (result.message || 'Unknown error occurred'));
+                        }
+                    } catch (error) {
+                        console.error('Error parsing response:', error);
+                        alert('Error updating event. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    alert('Error updating event. Please try again.');
+                },
+                complete: function() {
+                    submitButton.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+
+        // Delete event handler
+        window.deleteEvent = function(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                $.post('../controllers/eventController.php', {
+                    action: 'delete_event',
+                    event_id: eventId
+                }, function(response) {
+                    let result = JSON.parse(response);
+                    if (result.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                });
+            }
+        };
+    });
+    function reloadEventsList() {
+    $('#eventList').load(window.location.href + ' #eventList > *', function(response, status, xhr) {
+        if (status === 'error') {
+            console.error('Error reloading events:', xhr.statusText);
+            alert('Error reloading events. Please refresh the page.');
+        }
+    });
+}
+    </script>
+</body>
+</html>

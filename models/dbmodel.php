@@ -117,7 +117,38 @@ function getAllByUser($userId) {
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
+function getAllEvent() {
+    $conn = getConnection();
+    $currentDateTime = date('Y-m-d H:i:s');
+    $sql = "SELECT * FROM event_s WHERE registration_deadline >= ? ORDER BY registration_deadline ASC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $currentDateTime);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+function getPaginatedEvents($offset, $limit) {
 
+    $conn = getConnection();
+    $sql = "SELECT * FROM event_s ORDER BY event_date DESC LIMIT ? OFFSET ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $events = [];
+    while ($row = $result->fetch_assoc()) {
+        $events[] = $row;
+    }
+    return $events;
+}
+function getEventById($event_id) {
+    $conn = getConnection();
+    $stmt = $conn->prepare("SELECT * FROM event_s WHERE event_id = ?");
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
 function updateEvent($eventId, $data) {
     $conn = getConnection();
     $sql = "UPDATE event_s SET event_name = ?, description = ?, event_date = ?, venue = ?, max_capacity = ?, registration_deadline = ?

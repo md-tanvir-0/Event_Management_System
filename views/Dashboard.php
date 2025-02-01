@@ -1,6 +1,13 @@
 <?php
 //require_once('../controllers/dashboardController.php');
 require_once('../controllers/eventController.php');
+require_once('./Navbar.php');
+$eventsPerPage = 3;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $eventsPerPage;
+$totalEvents = count(getAllEvent()); // Get total event count
+$totalPages = ceil($totalEvents / $eventsPerPage);
+$events = getPaginatedEvents($offset, $eventsPerPage);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,7 +45,7 @@ require_once('../controllers/eventController.php');
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="#">Event Management System</a>
             <div class="collapse navbar-collapse justify-content-end">
@@ -58,7 +65,7 @@ require_once('../controllers/eventController.php');
                 </ul>
             </div>
         </div>
-    </nav>
+    </nav> -->
 
     <!-- Hero Section -->
     <div id="eventCarousel" class="carousel slide event-carousel" data-bs-ride="carousel">
@@ -99,38 +106,6 @@ require_once('../controllers/eventController.php');
             <button class="btn btn-primary">Search</button>
         </div>
     </div>
-
-    <!-- Paginated Event List -->
-    <!-- <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Event 1</h5>
-                        <p class="card-text">Event details...</p>
-                        <a href="#" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Event 2</h5>
-                        <p class="card-text">Event details...</p>
-                        <a href="#" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Event 3</h5>
-                        <p class="card-text">Event details...</p>
-                        <a href="#" class="btn btn-primary">View</a>
-                    </div>
-                </div>
-            </div>
-        </div> -->
     <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -157,26 +132,20 @@ require_once('../controllers/eventController.php');
     </div>
     <div class="container mt-4">
         <div class="row" id="eventList">
-            <?php
-            $events = getAllByUser($_SESSION['userid']);
-            foreach ($events as $event): ?>
+            <?php foreach ($events as $event): ?>
                 <div class="col-md-4 mb-3">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($event['event_name']) ?></h5>
                             <p class="card-text"><?= htmlspecialchars($event['description']) ?></p>
                             <p class="card-text"><small class="text-muted">Date: <?= htmlspecialchars($event['event_date']) ?></small></p>
-                            <div class="btn-group">
-                                <button class="btn btn-primary btn-sm" onclick="editEvent(<?= $event['event_id'] ?>)">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteEvent(<?= $event['event_id'] ?>)">Delete</button>
-                            </div>
+                            <a href="#" class="btn btn-primary">View</a>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
-
     <!-- Edit Modal -->
     <div class="modal fade" id="editEventModal" tabindex="-1">
         <div class="modal-dialog">
@@ -203,7 +172,7 @@ require_once('../controllers/eventController.php');
             </div>
         </div>
     </div>
-    <!-- <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
             <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
                     <strong class="me-auto">Success</strong>
@@ -211,17 +180,23 @@ require_once('../controllers/eventController.php');
                 </div>
                 <div class="toast-body"></div>
             </div>
-        </div> -->
+        </div>
     <!-- Pagination -->
-    <!-- <nav>
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-            </ul>
-        </nav> -->
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                <a class="page-link" href="?page=<?= max(1, $page - 1) ?>">Previous</a>
+            </li>
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                    <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                </li>
+            <?php endfor; ?>
+            <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
+                <a class="page-link" href="?page=<?= min($totalPages, $page + 1) ?>">Next</a>
+            </li>
+        </ul>
+    </nav>
     </div>
     <script>
         $('#createEventForm').submit(function(e) {
@@ -251,46 +226,7 @@ require_once('../controllers/eventController.php');
                 }
             });
         });
-
-        function editEvent(eventId) {
-    $.get('../controllers/eventController.php', {
-        action: 'get_event',
-        event_id: eventId
-    }, function(response) {
-        $('#edit_event_id').val(response.event_id);
-        $('#edit_event_name').val(response.event_name);
-        $('#edit_description').val(response.description);
-        $('#editEventModal').modal('show');
-    });
-}
-
-$('#editEventForm').submit(function(e) {
-    e.preventDefault();
-    $.ajax({
-        url: '../controllers/eventController.php',
-        method: 'POST',
-        data: $(this).serialize(),
-        success: function(response) {
-            $('#editEventModal').modal('hide');
-            reloadEventsList();
-        }
-    });
-});
-
-function deleteEvent(eventId) {
-    if(confirm('Are you sure you want to delete this event?')) {
-        $.post('../controllers/eventController.php', {
-            action: 'delete_event',
-            event_id: eventId
-        }, function() {
-            reloadEventsList();
-        });
-    }
-}
-
-function reloadEventsList() {
-    $('#eventList').load(window.location.href + ' #eventList > *');
-}
+        
     </script>
 </body>
 
