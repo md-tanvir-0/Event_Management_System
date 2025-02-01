@@ -70,38 +70,33 @@ function sanitizeInput($data) {
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 
-            session_start();
-        
-        // Sanitize inputs
+        session_start();
+
         $formData = [
             'fullName' => sanitizeInput($_POST['fullName']),
             'phone' => sanitizeInput($_POST['phone']),
             'email' => sanitizeInput($_POST['email']),
-            'password' => $_POST['password'], // Don't sanitize password before hashing
+            'password' => $_POST['password'],
             'confirmPassword' => $_POST['confirmPassword']
         ];
-        
-        // Validate inputs
+
         $validator = new RegistrationValidator();
         if (!$validator->validate($formData)) {
             $_SESSION['registration_errors'] = $validator->getErrors();
-            $_SESSION['old_input'] = array_diff_key($formData, ['password' => '', 'confirmPassword' => '']); // Don't store passwords
+            $_SESSION['old_input'] = array_diff_key($formData, ['password' => '', 'confirmPassword' => '']);
             header("Location: ../views/Registration.php");
             exit();
         }
-        
-        // Hash password
+
         $hashedPassword = password_hash($formData['password'], PASSWORD_BCRYPT, ['cost' => 12]);
-        
-        // Attempt registration
+
         $result = RegistrationData(
             $formData['fullName'],
             $formData['phone'],
             $formData['email'],
             $hashedPassword
         );
-        
-        // Handle registration result
+
         if ($result === 'Email already used') {
             $_SESSION['registration_errors'] = ['email' => 'This email is already registered'];
             $_SESSION['old_input'] = array_diff_key($formData, ['password' => '', 'confirmPassword' => '']);

@@ -54,6 +54,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
             width: 100%;
             padding-left: 2.5rem;
         }
+
         .input-group-wrapper {
             margin-bottom: 1rem;
             position: relative;
@@ -83,7 +84,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                         <div class="row g-0">
                             <div class="col-md-6 p-5">
                                 <h3 class="text-center fw-bold mb-5">Sign Up</h3>
-                                <form method="POST" action="../controllers/registrationController.php" enctype='multipart/form-data'>
+                                <form method="POST" action="../controllers/registrationController.php" id="registrationForm">
                                     <div class="input-group-wrapper">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -107,7 +108,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                                     <div class="input-group-wrapper">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                            <input type="email" name="email" id="email" class="form-control" placeholder="Enter your Email" value="<?php echo htmlspecialchars($old_input['email'] ?? ''); ?>">
+                                            <input type="text" name="email" id="email" class="form-control" placeholder="Enter your Email" value="<?php echo htmlspecialchars($old_input['email'] ?? ''); ?>">
                                             <?php if (isset($errors['email'])): ?>
                                                 <div class="error-message"><?php echo htmlspecialchars($errors['email']); ?></div>
                                             <?php endif; ?>
@@ -117,7 +118,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                                     <div class="input-group-wrapper">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                            <input type="password" name="password" id="password" class="form-control" placeholder="Password"value="<?php echo htmlspecialchars($old_input['password'] ?? ''); ?>">
+                                            <input type="password" name="password" id="password" class="form-control" placeholder="Password" value="<?php echo htmlspecialchars($old_input['password'] ?? ''); ?>">
                                             <?php if (isset($errors['password'])): ?>
                                                 <div class="error-message"><?php echo htmlspecialchars($errors['password']); ?></div>
                                             <?php endif; ?>
@@ -127,7 +128,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                                     <div class="input-group-wrapper">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm Password"value="<?php echo htmlspecialchars($old_input['confirmPassword'] ?? ''); ?>">
+                                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm Password" value="<?php echo htmlspecialchars($old_input['confirmPassword'] ?? ''); ?>">
                                             <?php if (isset($errors['confirmPassword'])): ?>
                                                 <div class="error-message"><?php echo htmlspecialchars($errors['confirmPassword']); ?></div>
                                             <?php endif; ?>
@@ -140,14 +141,14 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                                             I agree to the <a href="#">Terms of Service</a>
                                         </label>
                                         <?php if (isset($errors['terms'])): ?>
-                                                <div class="error-message"><?php echo htmlspecialchars($errors['terms']); ?></div>
+                                            <div class="error-message"><?php echo htmlspecialchars($errors['terms']); ?></div>
                                         <?php endif; ?>
                                     </div>
 
                                     <button type="submit" name="register" id="register" class="btn btn-primary w-100">Register</button>
                                     <div class="mt-3 text-center">
-                                    <p>Already have an account? <a href="./Login.php">Login</a></p>
-                                </div>
+                                        <p>Already have an account? <a href="./Login.php">Login</a></p>
+                                    </div>
                                 </form>
                             </div>
                             <div class="col-md-6 d-flex align-items-center justify-content-center" style="background-color: #f7f7f7;">
@@ -168,9 +169,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
             const password = document.getElementById("password");
             const confirmPassword = document.getElementById("confirmPassword");
             const terms = document.getElementById("terms");
-
             form.addEventListener("submit", function(e) {
-                e.preventDefault();
                 clearErrors();
                 let isValid = true;
                 if (fullName.value.trim().length < 1) {
@@ -182,7 +181,7 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                     showError(phone, "Phone number must be between 10 and 14 digits.");
                     isValid = false;
                 }
-                if (email.value.trim().length < 1 || !email.validity.valid) {
+                if (email.value.trim().length < 1 || !isValidEmail(email.value.trim())) {
                     showError(email, "Please enter a valid email address.");
                     isValid = false;
                 }
@@ -194,15 +193,15 @@ unset($_SESSION['registration_errors'], $_SESSION['old_input']);
                     showError(confirmPassword, "Passwords do not match.");
                     isValid = false;
                 }
-                if (!terms.ariaChecked) {
-                    showError(terms, "Please agree to the Terms of Service.");
-                    isValid = false;
-                }
 
                 if (!isValid) {
-                    form.submit();
+                    e.preventDefault();
                 }
             });
+
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
 
             function clearErrors() {
                 const errorMessages = document.querySelectorAll(".error-message");
