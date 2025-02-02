@@ -51,11 +51,17 @@ try {
 
         // Event Creation Logic
         if (isset($_POST['action']) && $_POST['action'] === 'create_event') {
-            $event_name = $_POST['event_name'] ?? '';
-            $description = $_POST['description'] ?? '';
+            $event_name = $_POST['event_name1'] ?? '';
+            $event_venue = $_POST['venue1'];
+            $max = $_POST['max1'];
+            $description = $_POST['description1'] ?? '';
+            $event_date = $_POST['date1'];
+            $deadline = $_POST['deadline1'];
+
+            //file_put_contents('data.txt', $event_name, FILE_APPEND);
             
             // Basic validation
-            if (empty($event_name) || empty($description)) {
+            if (empty($event_name) || empty($event_venue) || empty($max) || empty($description)) {
                 echo json_encode(['status' => 'error', 'message' => 'Event name and description are required']);
                 exit();
             }
@@ -64,10 +70,11 @@ try {
                 'user_id' => $userId,
                 'event_name' => $event_name,
                 'description' => $description,
-                'event_date' => date('Y-m-d H:i:s'), // Default for now
-                'venue' => 'TBD', // Default placeholder
-                'max_capacity' => 100, // Default placeholder
-                'registration_deadline' => date('Y-m-d', strtotime('+7 days')) // Default
+                // 'event_date' => date('Y-m-d H:i:s'), // Default for now
+                'event_date' => $event_date, // Default for now
+                'venue' => $event_venue, // Default placeholder
+                'max_capacity' => $max, // Default placeholder
+                'registration_deadline' => $deadline // Default
             ];
             if (createEvent($data)) {
                 header("Location: ../views/Dashboard.php");
@@ -82,17 +89,22 @@ try {
                 $event_id = $_POST["event_id"];
                 $event_name = $_POST["event_name"];
                 $event_desc = $_POST["description"];
-                
+                $event_venue = $_POST['venue'];
+                $max = $_POST['max'];
+                $date = $_POST['date'];
+                $deadline = $_POST['deadline'];
+
                 $data = [
                     'event_name' => $event_name,
                     'description' => $event_desc,
-                    'event_date' => date('Y-m-d H:i:s'),
-                    'venue' => 'TBD',
-                    'max_capacity' => 100,
-                    'registration_deadline' => date('Y-m-d', strtotime('+7 days'))
+                    'event_date' => $date,
+                    'venue' => $event_venue,
+                    'max_capacity' => $max,
+                    'registration_deadline' => $deadline
                 ];
-                file_put_contents('id.txt', $event_id, FILE_APPEND);
-                file_put_contents('data.txt', $data, FILE_APPEND);
+                // file_put_contents('id.txt', $event_id, FILE_APPEND);
+                //file_put_contents('data.txt', $data, FILE_APPEND);
+
                 if (updateEvent($event_id, $data)) {
                     echo json_encode(['status' => 'success', 'message' => 'Event updated successfully']);
                 } else {
@@ -100,6 +112,7 @@ try {
                 }
                 exit();
             }
+
             if (isset($_POST['action']) && $_POST['action'] === 'delete_event') {
                 $event_id = $_POST['event_id'] ?? null;
                 

@@ -111,15 +111,35 @@ unset($_SESSION['login_errors'], $_SESSION['old_input']);
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                         <input type="password" 
-                                               name="password" 
-                                               id="password" 
-                                               class="form-control <?php echo isset($errors['password']) ? 'is-invalid' : ''; ?>" 
-                                               placeholder="Password">
+                                            name="password" 
+                                            id="password" 
+                                            class="form-control <?php echo isset($errors['password']) ? 'is-invalid' : ''; ?>" 
+                                            placeholder="Password">
+                                        <button type="button" class="btn border" id="toggle-password">
+                                            <i class="fas fa-eye"></i> <!-- Eye icon to show password -->
+                                        </button>
                                     </div>
                                     <?php if (isset($errors['password'])): ?>
                                         <div class="error-message"><?php echo htmlspecialchars($errors['password']); ?></div>
                                     <?php endif; ?>
                                 </div>
+
+                                <script>
+                                    document.getElementById('toggle-password').addEventListener('click', function() {
+                                        var passwordField = document.getElementById('password');
+                                        var icon = this.querySelector('i');
+
+                                        if (passwordField.type === "password") {
+                                            passwordField.type = "text";
+                                            icon.classList.remove('fa-eye');
+                                            icon.classList.add('fa-eye-slash'); // Change icon to show the password is visible
+                                        } else {
+                                            passwordField.type = "password";
+                                            icon.classList.remove('fa-eye-slash');
+                                            icon.classList.add('fa-eye'); // Change icon back to hide the password
+                                        }
+                                    });
+                                </script>
 
                                 <div class="form-check d-flex justify-content-start mb-3">
                                     <input class="form-check-input me-2" type="checkbox" id="rememberMe" name="rememberMe">

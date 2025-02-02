@@ -111,12 +111,19 @@ function createEvent($data) {
 
 function getAllByUser($userId) {
     $conn = getConnection();
-    $sql = "SELECT * FROM event_s WHERE user_id = ?";
+    $sql = "SELECT e.*, 
+                   COALESCE(COUNT(a.attendee_id), 0) AS attendee_count
+            FROM event_s e
+            LEFT JOIN attendees a ON e.event_id = a.event_id
+            WHERE e.user_id = ?
+            GROUP BY e.event_id";
+    
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
+
 function getAllEvent() {
     $conn = getConnection();
     $currentDateTime = date('Y-m-d H:i:s');

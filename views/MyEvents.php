@@ -14,21 +14,32 @@ require_once('./Navbar.php');
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <h1>My Events</h1>
-    <div class="container mt-4">
-        <div class="row" id="eventList">
+    
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 sticky-top bg-white py-3 shadow-sm">My Events</h1>
+
+        <div class="row justify-content-center" id="eventList">
             <?php
             $events = getAllByUser($_SESSION['userid']);
             foreach ($events as $event): ?>
-                <div class="col-md-4 mb-3">
-                    <div class="card">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm rounded-lg">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($event['event_name']) ?></h5>
                             <p class="card-text"><?= htmlspecialchars($event['description']) ?></p>
-                            <p class="card-text"><small class="text-muted">Date: <?= htmlspecialchars($event['event_date']) ?></small></p>
-                            <div class="btn-group">
-                                <button data-bs-toggle="modal" data-bs-target="#editEventModal" class="btn btn-primary btn-sm" onclick="editEvent(<?= $event['event_id'] ?>)">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteEvent(<?= $event['event_id'] ?>)">Delete</button>
+                            <p class="card-text"><?= htmlspecialchars($event['attendee_count']) ?></p>
+                            <p class="card-text">Venue: <?= htmlspecialchars($event['venue']) ?></p>
+                            <p class="card-text">Max Capacity: <?= htmlspecialchars($event['max_capacity']) ?></p>
+                            <p class="card-text">Registration Deadline: <?= htmlspecialchars($event['registration_deadline']) ?></p>
+                            <p class="card-text text-muted"><small>Event Date: <?= htmlspecialchars($event['event_date']) ?></small></p>
+                            
+                            <div>
+                                <button data-bs-toggle="modal" data-bs-target="#editEventModal" class="btn btn-warning" onclick="editEvent(<?= $event['event_id'] ?>)">
+                                    Edit
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteEvent(<?= $event['event_id'] ?>)">
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -36,6 +47,9 @@ require_once('./Navbar.php');
             <?php endforeach; ?>
         </div>
     </div>
+
+
+
 
     <!-- Edit Modal -->
     <div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel">
@@ -52,6 +66,22 @@ require_once('./Navbar.php');
                         <div class="mb-3">
                             <label class="form-label">Event Name</label>
                             <input type="text" class="form-control" name="event_name" id="event_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Event Venue</label>
+                            <input type="text" class="form-control" name="venue" id="venue" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Max Capacity</label>
+                            <input type="text" class="form-control" name="max" id="max" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Event Date</label>
+                            <input type="date" class="form-control" name="date" id="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Registration Deadline</label>
+                            <input type="date" class="form-control" name="deadline" id="deadline" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description</label>
@@ -105,6 +135,10 @@ require_once('./Navbar.php');
             
             $('#event_id').val(eventData.event_id);
             $('#event_name').val(eventData.event_name);
+            $('#venue').val(eventData.venue);
+            $('#max').val(eventData.max_capacity);
+            $('#date').val(eventData.event_date);
+            $('#deadline').val(eventData.registration_deadline);
             $('#description').val(eventData.description);
         }
 

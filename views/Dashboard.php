@@ -17,6 +17,7 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Management Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         .event-carousel {
@@ -106,7 +107,7 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
             <button class="btn btn-primary">Search</button>
         </div>
     </div>
-    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -129,7 +130,7 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <div class="container mt-4">
         <div class="row" id="eventList">
             <?php foreach ($events as $event): ?>
@@ -139,48 +140,54 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
                             <h5 class="card-title"><?= htmlspecialchars($event['event_name']) ?></h5>
                             <p class="card-text"><?= htmlspecialchars($event['description']) ?></p>
                             <p class="card-text"><small class="text-muted">Date: <?= htmlspecialchars($event['event_date']) ?></small></p>
-                            <a href="#" class="btn btn-primary">View</a>
+                            <a href="#" onclick="viewEvent(<?= $event['event_id'] ?>)" data-bs-toggle="modal" data-bs-target="#viewEventModal" class="btn btn-primary">View</a>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editEventModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editEventForm">
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewEventModalLabel">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                    <form method="post" action="../controllers/attendeeController.php" id="editEventForm">
                         <input type="hidden" name="action" value="update_event">
-                        <input type="hidden" name="event_id" id="edit_event_id">
+                        <input type="hidden" name="event_id" id="event_id">
                         <div class="mb-3">
                             <label class="form-label">Event Name</label>
-                            <input type="text" class="form-control" name="event_name" id="edit_event_name" required>
+                            <input type="text" class="form-control" name="event_name" id="event_name" required readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Event Venue</label>
+                            <input type="text" class="form-control" name="venue" id="venue" required readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Max Capacity</label>
+                            <input type="text" class="form-control" name="max" id="max" required readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Event Date</label>
+                            <input type="date" class="form-control" name="date" id="date" required readonly>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description" id="edit_description" required></textarea>
+                            <textarea class="form-control" name="description" id="description" required readonly></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Update</button>
+                        <button type="submit" name="updateEvent" class="btn btn-primary" onclick="viewEvent(<?= $event['event_id'] ?>)">Register</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <strong class="me-auto">Success</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body"></div>
-            </div>
-        </div>
+
+
     <!-- Pagination -->
     <nav>
         <ul class="pagination justify-content-center">
@@ -199,6 +206,8 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
     </nav>
     </div>
     <script>
+         $(document).ready(function() {
+            let currentEventData = null;
         $('#createEventForm').submit(function(e) {
             e.preventDefault();
             $.ajax({
@@ -226,7 +235,50 @@ $events = getPaginatedEvents($offset, $eventsPerPage);
                 }
             });
         });
-        
+
+        window.viewEvent = function(eventId) {
+            $.ajax({
+                url: '../controllers/eventController.php',
+                method: 'GET',
+                data: {
+                    action: 'get_event',
+                    event_id: eventId
+                },
+                success: function(response) {
+                    try {
+                        console.log('Response:', response);
+                        currentEventData = JSON.parse(response);
+                        
+                        if (currentEventData.status === 'success') {
+                            populateModalFields(currentEventData);
+                            $('#editEventModal').modal('show');
+                        } else {
+                            alert('Error: ' + currentEventData.message);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing event data:', error);
+                        alert('Error loading event data. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    alert('Error loading event data. Please try again.');
+                }
+            });
+        };
+
+        function populateModalFields(eventData) {
+            if (!eventData) return;
+            
+            $('#event_id').val(eventData.event_id);
+            $('#event_name').val(eventData.event_name);
+            $('#venue').val(eventData.venue);
+            $('#max').val(eventData.max_capacity);
+            $('#date').val(eventData.event_date);
+            $('#deadline').val(eventData.registration_deadline);
+            $('#description').val(eventData.description);
+        }
+    });
     </script>
 </body>
 
